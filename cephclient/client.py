@@ -20,7 +20,7 @@
 #
 
 """
-A ceph-rest-api python interface that handles REST calls and responses.
+A ceph-mgr/RESTful plugin interface that handles REST calls and responses.
 """
 
 import logging
