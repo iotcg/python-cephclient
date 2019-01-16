@@ -53,7 +53,12 @@ class CephClient(object):
 
         self.log.debug("Params: {0}".format(str(self.params)))
 
-        self.endpoint = self.params['endpoint']
+        if 'endpoint' in self.params:
+            self.endpoint = self.params['endpoint']
+        else:
+            # default endpoint
+            self.endpoint = 'https://localhost:5001/'
+
         if 'timeout' not in self.params:
             self.timeout = None
 
