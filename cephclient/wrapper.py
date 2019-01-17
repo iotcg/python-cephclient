@@ -30,10 +30,9 @@ class CephWrapper(client.CephClient):
     ###
     def df(self, detail=None, **kwargs):
         if detail is not None:
-            return self.get('df?detail={0}'
-                            .format(detail), **kwargs)
+            return self.post('request?wait=1', json = {'prefix': 'df', 'detail': detail}, **kwargs)
         else:
-            return self.get('df', **kwargs)
+            return self.post('request?wait=1', json = {'prefix': 'df'}, **kwargs)
 
     def fsid(self, **kwargs):
         return self.get('fsid', **kwargs)
