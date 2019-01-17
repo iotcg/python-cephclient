@@ -292,10 +292,9 @@ class CephWrapper(client.CephClient):
     ###
     def mon_dump(self, epoch=None, **kwargs):
         if epoch is not None:
-            return self.get('mon/dump?epoch={0}'
-                            .format(epoch), **kwargs)
+            return self.post('request?wait=1', json = {'prefix': 'mon dump', 'epoch': epoch}, **kwargs)
         else:
-            return self.get('mon/dump', **kwargs)
+            return self.post('request?wait=1', json = {'prefix': 'mon dump'}, **kwargs)
 
     def mon_getmap(self, epoch=None, **kwargs):
         kwargs['supported_body_types'] = ['binary']
