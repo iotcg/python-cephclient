@@ -35,7 +35,7 @@ class CephWrapper(client.CephClient):
             return self.post('request?wait=1', json = {'prefix': 'df'}, **kwargs)
 
     def fsid(self, **kwargs):
-        return self.get('fsid', **kwargs)
+        return self.post('request?wait=1', json = {'prefix': 'fsid'}, **kwargs)
 
     def health(self, detail=None, **kwargs):
         if detail is not None:
