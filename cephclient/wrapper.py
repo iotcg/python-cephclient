@@ -408,6 +408,9 @@ class CephWrapper(client.CephClient):
         else:
             return self.get('osd/pool/stats', **kwargs)
 
+    def osd_get_pool_quota(self, pool, **kwargs):
+        return self.osd_pool_get_quota(pool, **kwargs)
+
     def osd_pool_get_quota(self, pool, **kwargs):
         return self.post('request?wait=1', json = {'prefix': 'osd pool get-quota', 'pool': pool}, **kwargs)
 
