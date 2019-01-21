@@ -44,7 +44,7 @@ class CephWrapper(client.CephClient):
             return self.post('request?wait=1', json = {'prefix': 'health'}, **kwargs)
 
     def quorum_status(self, **kwargs):
-        return self.get('quorum_status', **kwargs)
+        return self.post('request?wait=1', json = {'prefix': 'quorum_status'}, **kwargs)
 
     def report(self, tags=None, **kwargs):
         if tags is not None:
