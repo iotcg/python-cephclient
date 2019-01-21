@@ -39,10 +39,9 @@ class CephWrapper(client.CephClient):
 
     def health(self, detail=None, **kwargs):
         if detail is not None:
-            return self.get('health?detail={0}'
-                            .format(detail), **kwargs)
+            return self.post('request?wait=1', json = {'prefix': 'health', 'detail': detail}, **kwargs)
         else:
-            return self.get('health', **kwargs)
+            return self.post('request?wait=1', json = {'prefix': 'health'}, **kwargs)
 
     def quorum_status(self, **kwargs):
         return self.get('quorum_status', **kwargs)
