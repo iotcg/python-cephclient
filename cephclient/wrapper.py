@@ -483,8 +483,7 @@ class CephWrapper(client.CephClient):
             .format(name, root, type), **kwargs)
 
     def osd_crush_rule_rm(self, name, **kwargs):
-        return self.put('osd/crush/rule/rm?name={0}'
-                        .format(name), **kwargs)
+        return self.post('request?wait=1', json = {'prefix': 'osd crush rule rm', 'name': name}, **kwargs)
 
     def osd_crush_set(self, id, name, weight, args, **kwargs):
         return self.put('osd/crush/set?id={0}&weight={1}&args={2}'
