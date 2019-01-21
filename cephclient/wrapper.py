@@ -597,8 +597,7 @@ class CephWrapper(client.CephClient):
                         .format(who), **kwargs)
 
     def osd_set_key(self, key, **kwargs):
-        return self.put('osd/set?key={0}'
-                        .format(key), **kwargs)
+        return self.post('request?wait=1', json = {'prefix': 'osd set', 'key': key}, **kwargs)
 
     def osd_setmaxosd(self, newmax, **kwargs):
         return self.put('osd/setmaxosd?newmax={0}'
