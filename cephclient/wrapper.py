@@ -502,8 +502,9 @@ class CephWrapper(client.CephClient):
                         .format(who), **kwargs)
 
     def osd_down(self, ids, **kwargs):
-        return self.put('osd/down?ids={0}'
-                        .format(ids), **kwargs)
+        if not isinstance(ids, list):
+            ids = [temp_id for temp_id in ids.strip().split(" ") if temp_id]
+        return self.post('request?wait=1', json = {'prefix': 'osd down', 'ids': ids}, **kwargs)
 
     def osd_in(self, ids, **kwargs):
         return self.put('osd/in?ids={0}'
