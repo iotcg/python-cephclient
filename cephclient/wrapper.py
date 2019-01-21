@@ -433,9 +433,14 @@ class CephWrapper(client.CephClient):
         return self.put('osd/blacklist?blacklistop={0}&addr={1}&expire={2}'
                         .format(blacklistop, addr, expire), **kwargs)
 
-    def osd_create(self, uuid, **kwargs):
-        return self.put('osd/create?uuid={0}'
-                        .format(uuid), **kwargs)
+    def osd_create(self, uuid=None, id=None, **kwargs):
+        jsont = dict()
+        jsont['prefix'] = 'osd create'
+        if uuid is not None:
+            jsont['uuid'] = uuid
+        if id is not None:
+            jsont['id'] = id
+        return self.post('request?wait=1', json = jsont, **kwargs)
 
     def osd_crush_add(self, id, weight, args, **kwargs):
         return self.put('osd/crush/add?id={0}&weight={1}&args={2}'
