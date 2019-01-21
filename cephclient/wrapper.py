@@ -418,7 +418,7 @@ class CephWrapper(client.CephClient):
             return self.post('request?wait=1', json = {'prefix': 'osd pool ls'}, **kwargs)
 
     def osd_stat(self, **kwargs):
-        return self.get('osd/stat', **kwargs)
+        return self.post('request?wait=1', json = {'prefix': 'osd stat'}, **kwargs)
 
     def osd_tree(self, epoch=None, **kwargs):
         if epoch is not None:
