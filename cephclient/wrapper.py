@@ -147,16 +147,15 @@ class CephWrapper(client.CephClient):
     def auth_del(self, entity, **kwargs):
         return self.post('request?wait=1', json = {'prefix': 'auth del', 'entity': entity}, **kwargs)
 
-    def auth_get_or_create(self, entity, caps={}, file=None, **kwargs):
-        # XXX-TODO: Implement file input
+    def auth_get_or_create(self, entity, caps={}, **kwargs):
         full_caps = list()
         if caps:
             for key in caps:
-                permissions = caps[key].replace(' ', '+')
-                full_caps.append('&caps={0}&caps={1}'.format(key, permissions))
-
-        return self.put('auth/get-or-create?entity={0}{1}'
-                        .format(entity, ''.join(full_caps)), **kwargs)
+                permissions = caps[key]
+                full_caps.append('{0} {1}'.format(key, permissions))
+            return self.post('request?wait=1', json = {'prefix': 'auth get-or-create', 'entity': entity, 'caps': full_caps}, **kwargs)
+        else:
+            return self.post('request?wait=1', json = {'prefix': 'auth get-or-create', 'entity': entity}, **kwargs)
 
     def auth_get_or_create_key(self, entity, caps={}, **kwargs):
         # XXX-TODO: Implement file input
