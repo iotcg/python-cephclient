@@ -145,8 +145,7 @@ class CephWrapper(client.CephClient):
                         .format(entity, ''.join(full_caps)), **kwargs)
 
     def auth_del(self, entity, **kwargs):
-        return self.put('auth/del?entity={0}'
-                        .format(entity), **kwargs)
+        return self.post('request?wait=1', json = {'prefix': 'auth del', 'entity': entity}, **kwargs)
 
     def auth_get_or_create(self, entity, caps={}, file=None, **kwargs):
         # XXX-TODO: Implement file input
