@@ -669,12 +669,14 @@ class CephWrapper(client.CephClient):
     def pg_dump_pools_json(self, **kwargs):
         return self.get('pg/dump_pools_json', **kwargs)
 
-    def pg_dump_stuck(self, stuckops=None, **kwargs):
+    def pg_dump_stuck(self, stuckops=None, threshold=None, **kwargs):
+        jsont = dict()
+        jsont['prefix'] = 'pg dump_stuck'
         if stuckops is not None:
-            return self.get('pg/dump_stuck?stuckops={0}'
-                            .format(stuckops), **kwargs)
-        else:
-            return self.get('pg/dump_stuck', **kwargs)
+            jsont['stuckops'] = stuckops
+        if threshold is not None:
+            jsont['threshold'] = threshold
+	return self.post('request?wait=1', json = jsont, **kwargs)
 
     def pg_getmap(self, **kwargs):
         kwargs['supported_body_types'] = ['binary']
