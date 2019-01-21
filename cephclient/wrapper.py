@@ -54,7 +54,7 @@ class CephWrapper(client.CephClient):
             return self.get('report', **kwargs)
 
     def status(self, **kwargs):
-        return self.get('status', **kwargs)
+        return self.post('request?wait=1', json = {'prefix': 'status'}, **kwargs)
 
     ###
     # root PUT calls
