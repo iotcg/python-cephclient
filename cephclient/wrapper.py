@@ -463,9 +463,11 @@ class CephWrapper(client.CephClient):
         full_caps.append(args)
         return self.post('request?wait=1', json = {'prefix': 'osd crush move', 'name': name, 'args':full_caps }, **kwargs)
 
-    def osd_crush_remove(self, name, ancestor, **kwargs):
-        return self.put('osd/crush/remove?name={0}&ancestor={1}'
-                        .format(name, ancestor), **kwargs)
+    def osd_crush_remove(self, name, ancestor = None, **kwargs):
+        if ancestor is not None:
+            return self.post('request?wait=1', json = {'prefix': 'osd crush remove', 'name': name, 'ancestor': ancestor}, **kwargs)
+        else:
+            return self.post('request?wait=1', json = {'prefix': 'osd crush remove', 'name': name}, **kwargs)
 
     def osd_crush_reweight(self, name, weight, **kwargs):
         return self.put('osd/crush/reweight?name={0}&weight={1}'
