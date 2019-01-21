@@ -458,8 +458,10 @@ class CephWrapper(client.CephClient):
                         .format(name, args), **kwargs)
 
     def osd_crush_move(self, name, args, **kwargs):
-        return self.put('osd/crush/move?name={0}&args={1}'
-                        .format(name, args), **kwargs)
+        #support only one arg e.g. "A=B"
+        full_caps = list()
+        full_caps.append(args)
+        return self.post('request?wait=1', json = {'prefix': 'osd crush move', 'name': name, 'args':full_caps }, **kwargs)
 
     def osd_crush_remove(self, name, ancestor, **kwargs):
         return self.put('osd/crush/remove?name={0}&ancestor={1}'
