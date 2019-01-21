@@ -340,7 +340,7 @@ class CephWrapper(client.CephClient):
         return self.get('osd/crush/rule/list', **kwargs)
 
     def osd_crush_rule_ls(self, **kwargs):
-        return self.get('osd/crush/rule/ls', **kwargs)
+        return self.post('request?wait=1', json = {'prefix': 'osd crush rule ls'}, **kwargs)
 
     def osd_dump(self, epoch=None, **kwargs):
         if epoch is not None:
