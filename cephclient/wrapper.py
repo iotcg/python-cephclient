@@ -422,10 +422,9 @@ class CephWrapper(client.CephClient):
 
     def osd_tree(self, epoch=None, **kwargs):
         if epoch is not None:
-            return self.get('osd/tree?epoch={0}'
-                            .format(epoch), **kwargs)
+            return self.post('request?wait=1', json = {'prefix': 'osd tree', 'epoch': epoch}, **kwargs)
         else:
-            return self.get('osd/tree', **kwargs)
+            return self.post('request?wait=1', json = {'prefix': 'osd tree'}, **kwargs)
 
     ###
     # osd PUT calls
