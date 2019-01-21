@@ -330,8 +330,11 @@ class CephWrapper(client.CephClient):
     def osd_crush_dump(self, **kwargs):
         return self.get('osd/crush/dump', **kwargs)
 
-    def osd_crush_rule_dump(self, **kwargs):
-        return self.get('osd/crush/rule/dump', **kwargs)
+    def osd_crush_rule_dump(self, name=None, **kwargs):
+        if name is not None:
+            return self.post('request?wait=1', json = {'prefix': 'osd crush rule dump', 'name': name}, **kwargs)
+        else:
+            return self.post('request?wait=1', json = {'prefix': 'osd crush rule dump'}, **kwargs)
 
     def osd_crush_rule_list(self, **kwargs):
         return self.get('osd/crush/rule/list', **kwargs)
