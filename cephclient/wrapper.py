@@ -342,6 +342,9 @@ class CephWrapper(client.CephClient):
     def osd_crush_rule_ls(self, **kwargs):
         return self.post('request?wait=1', json = {'prefix': 'osd crush rule ls'}, **kwargs)
 
+    def osd_crush_tree(self, **kwargs):
+        return self.post('request?wait=1', json = {'prefix': 'osd crush tree'}, **kwargs)
+
     def osd_dump(self, epoch=None, **kwargs):
         if epoch is not None:
             return self.get('osd/dump?epoch={0}'
