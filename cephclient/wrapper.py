@@ -398,6 +398,9 @@ class CephWrapper(client.CephClient):
     def osd_perf(self, **kwargs):
         return self.get('osd/perf', **kwargs)
 
+    def osd_get_pool_param(self, pool, var, **kwargs):
+        return self.osd_pool_get(pool, var, **kwargs)
+
     def osd_pool_get(self, pool, var, **kwargs):
         return self.post('request?wait=1', json = {'prefix': 'osd pool get', 'pool': pool, 'var': var}, **kwargs)
 
