@@ -447,8 +447,7 @@ class CephWrapper(client.CephClient):
                         .format(id, weight, args), **kwargs)
 
     def osd_crush_add_bucket(self, name, type, **kwargs):
-        return self.put('osd/crush/add-bucket?name={0}&type={1}'
-                        .format(name, type), **kwargs)
+        return self.post('request?wait=1', json = {'prefix': 'osd crush add-bucket', 'name': name, 'type': type}, **kwargs)
 
     def osd_crush_create_or_move(self, id, weight, args, **kwargs):
         return self.put('osd/crush/create-or-move?id={0}&weight={1}&args={2}'
