@@ -518,10 +518,23 @@ class CephWrapper(client.CephClient):
         return self.put('osd/out?ids={0}'
                         .format(ids), **kwargs)
 
-    def osd_pool_create(self, pool, pg_num, pgp_num, properties, **kwargs):
-        return self.put(
-            'osd/pool/create?pool={0}&pg_num={1}&pgp_num={2}&properties={3}'
-            .format(pool, pg_num, pgp_num, properties), **kwargs)
+    def osd_pool_create(self, pool, pg_num, pgp_num = None, pool_type = None, erasure_code_profile = None, rule = None, expected_num_objects = None, **kwargs):
+        jsont = dict()
+        jsont['prefix'] = 'osd pool create'
+        jsont['pool'] = pool
+        jsont['pg_num'] = pg_num
+
+        if pgp_num is not None:
+            jsont['pgp_num'] = pgp_num
+        if pool_type is not None:
+            jsont['pool_type'] = pool_type
+        if erasure_code_profile is not None:
+            jsont['erasure_code_profile'] = erasure_code_profile
+        if rule is not None:
+            jsont['rule'] = rule
+        if expected_num_objects is not None:
+            jsont['expected_num_objects'] = expected_num_objects
+        return self.post('request?wait=1', json = jsont, **kwargs)
 
     def osd_pool_delete(self, pool, sure, **kwargs):
         return self.put('osd/pool/delete?pool={0}&sure={1}'
