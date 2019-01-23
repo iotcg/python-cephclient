@@ -25,6 +25,9 @@ A ceph-mgr/RESTful plugin interface that handles REST calls and responses.
 
 import logging
 import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+import subprocess
 
 try:
     from lxml import etree
@@ -64,6 +67,23 @@ class CephClient(object):
 
         self.http = requests.Session()
 
+    def _restful_check_active(self):
+        rst = subprocess.Popen("curl --connect-timeout 5 -k https://localhost:5001/ 2>&1", shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        return rst.wait()
+
+    def _get_admin_key(self):
+        if self._restful_check_active() != 0:
+            raise Exception('RESTful plugin is not active. Please restart')
+        p = subprocess.Popen("ceph restful list-keys --connect-timeout 5", shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        if p.wait() != 0:
+            raise Exception('RESTful plugin: can not get list-keys. Please restart')
+        rst = p.stdout.read()
+        rst = json.loads(rst)
+        if 'admin' not in rst.keys():
+            raise Exception('admin user and its password not exist in RESTful plugin')
+        admin_key = str(rst['admin'])
+        return ("admin", admin_key)
+
     def _request(self, url, method, **kwargs):
         if self.timeout is not None:
             kwargs.setdefault('timeout', self.timeout)
@@ -73,14 +93,11 @@ class CephClient(object):
 
         try:
             if kwargs['body'] is 'json':
-                kwargs['headers']['Accept'] = 'application/json'
-                kwargs['headers']['Content-Type'] = 'application/json'
+                kwargs['json']['format'] = 'json'
             elif kwargs['body'] is 'xml':
-                kwargs['headers']['Accept'] = 'application/xml'
-                kwargs['headers']['Content-Type'] = 'application/xml'
+                kwargs['json']['format'] = 'xml'
             elif kwargs['body'] is 'text':
-                kwargs['headers']['Accept'] = 'text/plain'
-                kwargs['headers']['Content-Type'] = 'text/plain'
+                kwargs['json']['format'] = 'plain'
             elif kwargs['body'] is 'binary':
                 kwargs['headers']['Accept'] = 'application/octet-stream'
                 kwargs['headers']['Content-Type'] = 'application/octet-stream'
@@ -88,8 +105,7 @@ class CephClient(object):
                 raise exceptions.UnsupportedRequestType()
         except KeyError:
             # Default if body type is unspecified is text/plain
-            kwargs['headers']['Accept'] = 'text/plain'
-            kwargs['headers']['Content-Type'] = 'text/plain'
+            kwargs['json']['format'] = 'json'
 
         # Optionally verify if requested body type is supported
         try:
@@ -100,27 +116,36 @@ class CephClient(object):
         except KeyError:
             pass
 
-        del kwargs['body']
+        try:
+            del kwargs['body']
+        except KeyError:
+            pass
 
         self.log.debug("{0} URL: {1}{2} - {3}"
                        .format(method, self.endpoint, url, str(kwargs)))
 
-        resp = self.http.request(
-            method,
-            self.endpoint + url,
-            **kwargs)
+        resp = self.http.request(method, self.endpoint + url, auth = self._get_admin_key(), verify = False, **kwargs)
+        rst = json.loads(resp.text)
 
-        if resp.text:
-            try:
-                if kwargs['headers']['Content-Type'] is 'application/json':
-                    body = json.loads(resp.text)
-                elif kwargs['headers']['Content-Type'] is 'application/xml':
-                    body = etree.XML(resp.text)
-                else:
-                    body = resp.text
-            except ValueError:
-                body = None
-        else:
+        if rst['has_failed'] == True or rst['state'] != 'success' or len(rst['failed']) != 0 or rst['is_finished'] != True:
+            resp.ok = False
+            body = None
+            return resp, body
+
+        try:
+            finished = rst['finished'][0]
+            body = {}
+            if (len(finished) == 0):
+                body[u'status'] = u'ko'
+            elif kwargs['json']['format'] is 'json':
+                body[u'status'] = u'ok'
+                body[u'output'] = json.loads(str(finished['outb'].strip('\n')))
+            elif kwargs['json']['format'] is 'xml':
+                body = etree.XML(finished['outb'].strip('\n'))
+            else:
+                #do not add strip here unless you know what you are doing
+                body = finished['outb']
+        except ValueError:
             body = None
 
         return resp, body
