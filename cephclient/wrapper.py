@@ -18,6 +18,7 @@
 
 import cephclient.client as client
 import cephclient.exceptions as exceptions
+import json
 
 
 class CephWrapper(client.CephClient):
@@ -343,7 +344,79 @@ class CephWrapper(client.CephClient):
         return self.post('request?wait=1', json = {'prefix': 'osd crush rule ls'}, **kwargs)
 
     def osd_crush_tree(self, **kwargs):
-        return self.post('request?wait=1', json = {'prefix': 'osd crush tree'}, **kwargs)
+        # Bug: https://tracker.ceph.com/issues/38011
+        # return self.post('request?wait=1', json = {'prefix': 'osd crush tree'}, **kwargs)
+
+        if self.timeout is not None:
+            kwargs.setdefault('timeout', self.timeout)
+
+        kwargs.setdefault('headers', kwargs.get('headers', {}))
+        kwargs['headers']['User-Agent'] = self.user_agent
+
+        kwargs.setdefault('json', {})
+        kwargs['json']['prefix'] = 'osd crush tree'
+        method = 'POST'
+        url = 'request?wait=1'
+
+        try:
+            if kwargs['body'] is 'json':
+                kwargs['json']['format'] = 'json'
+            elif kwargs['body'] is 'xml':
+                kwargs['json']['format'] = 'xml'
+            elif kwargs['body'] is 'text':
+                kwargs['json']['format'] = 'plain'
+            elif kwargs['body'] is 'binary':
+                kwargs['headers']['Accept'] = 'application/octet-stream'
+                kwargs['headers']['Content-Type'] = 'application/octet-stream'
+            else:
+                raise exceptions.UnsupportedRequestType()
+        except KeyError:
+            # Default if body type is unspecified is text/plain
+            kwargs['json']['format'] = 'json'
+
+        # Optionally verify if requested body type is supported
+        try:
+            if kwargs['body'] not in kwargs['supported_body_types']:
+                raise exceptions.UnsupportedBodyType()
+            else:
+                del kwargs['supported_body_types']
+        except KeyError:
+            pass
+
+        try:
+            del kwargs['body']
+        except KeyError:
+            pass
+
+        self.log.debug("{0} URL: {1}{2} - {3}"
+                       .format(method, self.endpoint, url, str(kwargs)))
+
+        resp = self.http.request(method, self.endpoint + url, auth = self._get_admin_key(), verify = False, **kwargs)
+
+        if resp.text:
+            try:
+                rst = json.loads(resp.text)
+                finished = rst['finished'][0]
+                body = {}
+                if (len(finished) == 0 or rst['state'] != 'success' or rst['is_finished'] != True):
+                    body[u'status'] = u'ko'
+                elif kwargs['json']['format'] is 'json':
+                    body[u'status'] = u'ok'
+                    if finished['outb'][-2:] == u'[]':
+                        body[u'output'] = json.loads(str(finished['outb'].strip('\n')[:-2]))
+                    else:
+                        body[u'output'] = json.loads(str(finished['outb'].strip('\n')))
+                elif kwargs['json']['format'] is 'xml':
+                    body = etree.XML(finished['outb'].strip('\n'))
+                else:
+                    #do not add strip here unless you know what you are doing
+                    body = finished['outb']
+            except ValueError:
+                body = None
+        else:
+            body = None
+
+        return resp, body
 
     def osd_df(self, output_method = None, **kwargs):
         if output_method is not None:
