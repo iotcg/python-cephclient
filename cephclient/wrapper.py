@@ -536,9 +536,14 @@ class CephWrapper(client.CephClient):
             jsont['expected_num_objects'] = expected_num_objects
         return self.post('request?wait=1', json = jsont, **kwargs)
 
-    def osd_pool_delete(self, pool, sure, **kwargs):
-        return self.put('osd/pool/delete?pool={0}&sure={1}'
-                        .format(pool, sure), **kwargs)
+    def osd_pool_delete(self, pool, pool2 = None, sure = None, **kwargs):
+        jsont = dict()
+        jsont['prefix'] = 'osd pool delete'
+        if pool2 is not None:
+            jsont['pool2'] = pool2
+        if sure is not None:
+            jsont['sure'] = sure
+        return self.post('request?wait=1', json = jsont, **kwargs)
 
     def osd_pool_param(self, pool, var, **kwargs):
         return self.put('osd/pool/get?pool={0}&var={1}'
