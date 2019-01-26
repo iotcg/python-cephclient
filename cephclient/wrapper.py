@@ -561,9 +561,14 @@ class CephWrapper(client.CephClient):
         return self.put('osd/pool/rmsnap?pool={0}&snap={1}'
                         .format(pool, snap), **kwargs)
 
-    def osd_set_pool_param(self, pool, var, **kwargs):
-        return self.put('osd/pool/set?pool={0}&var={1}'
-                        .format(pool, var), **kwargs)
+    def osd_set_pool_param(self, pool, var, val, force = None, **kwargs):
+        return self.osd_pool_set(pool, var, val, force, **kwargs)
+
+    def osd_pool_set(self, pool, var, val, force = None, **kwargs):
+        if force is not None:
+            return self.post('request?wait=1', json = {'prefix': 'osd pool set', 'pool': pool, 'var': var, 'val': val, 'force': force}, **kwargs)
+        else:
+            return self.post('request?wait=1', json = {'prefix': 'osd pool set', 'pool': pool, 'var': var, 'val': val}, **kwargs)
 
     def osd_set_pool_quota(self, pool, field, **kwargs):
         return self.put('osd/pool/set-quota?pool={0}&field={1}'
