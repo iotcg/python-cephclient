@@ -530,7 +530,7 @@ class CephWrapper(client.CephClient):
         return self.put('osd/out?ids={0}'
                         .format(ids), **kwargs)
 
-    def osd_pool_create(self, pool, pg_num, pgp_num = None, pool_type = None, erasure_code_profile = None, rule = None, expected_num_objects = None, **kwargs):
+    def osd_pool_create(self, pool, pg_num, pgp_num = None, pool_type = None, erasure_code_profile = None, ruleset = None, expected_num_objects = None, **kwargs):
         jsont = dict()
         jsont['prefix'] = 'osd pool create'
         jsont['pool'] = pool
@@ -542,8 +542,8 @@ class CephWrapper(client.CephClient):
             jsont['pool_type'] = pool_type
         if erasure_code_profile is not None:
             jsont['erasure_code_profile'] = erasure_code_profile
-        if rule is not None:
-            jsont['rule'] = rule
+        if ruleset is not None:
+            jsont['rule'] = ruleset
         if expected_num_objects is not None:
             jsont['expected_num_objects'] = expected_num_objects
         return self.post('request?wait=1', json = jsont, **kwargs)
