@@ -570,9 +570,11 @@ class CephWrapper(client.CephClient):
         else:
             return self.post('request?wait=1', json = {'prefix': 'osd pool set', 'pool': pool, 'var': var, 'val': val}, **kwargs)
 
-    def osd_set_pool_quota(self, pool, field, **kwargs):
-        return self.put('osd/pool/set-quota?pool={0}&field={1}'
-                        .format(pool, field), **kwargs)
+    def osd_set_pool_quota(self, pool, field, val, **kwargs):
+        return self.osd_pool_set_quota(pool, field, val, **kwargs)
+
+    def osd_pool_set_quota(self, pool, field, val, **kwargs):
+        return self.post('request?wait=1', json = {'prefix': 'osd pool set-quota', 'pool': pool, 'field': field, 'val': val}, **kwargs)
 
     def osd_repair(self, pool, who, **kwargs):
         return self.put('osd/repair?who={0}'
